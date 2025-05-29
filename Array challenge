@@ -1,0 +1,54 @@
+const readline = require('readline');
+
+function ArrayChallenge(strArr) {
+  const childToParent = {};
+  const parentToChildren = {};
+
+  for (let pair of strArr) {
+    const [child, parent] = pair.match(/\d+/g).map(Number);
+
+    if (childToParent[child]) return "false";
+    childToParent[child] = parent;
+
+    if (!parentToChildren[parent]) parentToChildren[parent] = [];
+    parentToChildren[parent].push(child);
+
+    if (parentToChildren[parent].length > 2) return "false";
+  }
+
+  const allNodes = new Set([...Object.keys(childToParent), ...Object.values(childToParent)]);
+  const children = new Set(Object.keys(childToParent));
+  const roots = [...allNodes].filter(n => !children.has(n));
+
+  if (roots.length !== 1) return "false";
+
+  const visited = new Set();
+  function dfs(node) {
+    if (visited.has(node)) return false;
+    visited.add(node);
+    const children = parentToChildren[node] || [];
+    for (let child of children) {
+      if (!dfs(child)) return false;
+    }
+    return true;
+  }
+
+  const root = roots[0];
+  if (!dfs(root)) return "false";
+
+  if (visited.size !== allNodes.size) return "false";
+
+  return "true";
+}
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+rl.question("Enter array of pairs (e.g. (1,2),(2,4),(7,2)): ", function(input) {
+  const rawPairs = input.split("),").map(p => (p.endsWith(")") ? p : p + ")"));
+  console.log("Input Array:", rawPairs);
+  console.log("Output:", ArrayChallenge(rawPairs));
+  rl.close();
+});
